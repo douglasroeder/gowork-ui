@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Navigation
 import Contacts.Board
+import Contacts.New
 import Login
 
 
@@ -14,6 +15,7 @@ import Login
 type alias Model =
     { page : Page
     , contactsBoardModel : Contacts.Board.Model
+    , contactsNewModel : Contacts.New.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -25,11 +27,14 @@ type Page
     | HomePage
     | LoginPage
     | ContactsBoardPage
+    | ContactsNewPage
 
 
 authPages : List Page
 authPages =
-    [ ContactsBoardPage ]
+    [ ContactsBoardPage
+    , ContactsNewPage
+    ]
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
@@ -47,12 +52,16 @@ init flags location =
         ( contactsboardInitModel, contactsboardCmd ) =
             Contacts.Board.init
 
+        ( contactsNewInitModel, contactsNewCmd ) =
+            Contacts.New.init
+
         ( loginInitModel, loginCmd ) =
             Login.init
 
         initModel =
             { page = updatedPage
             , contactsBoardModel = contactsboardInitModel
+            , contactsNewModel = contactsNewInitModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -61,6 +70,7 @@ init flags location =
         cmds =
             Cmd.batch
                 [ Cmd.map ContactsBoardMsg contactsboardCmd
+                , Cmd.map ContactsNewMsg contactsNewCmd
                 , Cmd.map LoginMsg loginCmd
                 , cmd
                 ]
@@ -76,6 +86,7 @@ type Msg
     = Navigate Page
     | ChangePage Page
     | ContactsBoardMsg Contacts.Board.Msg
+    | ContactsNewMsg Contacts.New.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -113,6 +124,15 @@ update msg model =
             in
                 ( { model | contactsBoardModel = contactsBoardModel }
                 , Cmd.map ContactsBoardMsg cmd
+                )
+
+        ContactsNewMsg msg ->
+            let
+                ( contactsNewModel, cmd ) =
+                    Contacts.New.update msg model.contactsNewModel
+            in
+                ( { model | contactsNewModel = contactsNewModel }
+                , Cmd.map ContactsNewMsg cmd
                 )
 
         LoginMsg msg ->
@@ -173,6 +193,10 @@ view model =
                     Html.map ContactsBoardMsg
                         (Contacts.Board.view model.contactsBoardModel)
 
+                ContactsNewPage ->
+                    Html.map ContactsNewMsg
+                        (Contacts.New.view model.contactsNewModel)
+
                 LoginPage ->
                     Html.map LoginMsg
                         (Login.view model.login)
@@ -189,11 +213,20 @@ view model =
             ]
 
 
-contactsLinkView : Model -> Html Msg
-contactsLinkView { loggedIn } =
+contactsBoardLinkView : Model -> Html Msg
+contactsBoardLinkView { loggedIn } =
     if loggedIn then
         a [ onClick (Navigate ContactsBoardPage) ]
             [ text "Contacts" ]
+    else
+        text ""
+
+
+contactsNewLinkView : Model -> Html Msg
+contactsNewLinkView { loggedIn } =
+    if loggedIn then
+        a [ onClick (Navigate ContactsNewPage) ]
+            [ text "New Contact" ]
     else
         text ""
 
@@ -204,7 +237,10 @@ pageHeader model =
         [ a [ onClick (Navigate HomePage) ] [ text "Home" ]
         , ul []
             [ li []
-                [ contactsLinkView model
+                [ contactsBoardLinkView model
+                ]
+            , li []
+                [ contactsNewLinkView model
                 ]
             ]
         , ul []
@@ -251,6 +287,9 @@ hashToPage hash =
         "#/contacts" ->
             ContactsBoardPage
 
+        "#/contacts/new" ->
+            ContactsNewPage
+
         "#/login" ->
             LoginPage
 
@@ -266,6 +305,9 @@ pageToHash page =
 
         ContactsBoardPage ->
             "#/contacts"
+
+        ContactsNewPage ->
+            "#/contacts/new"
 
         LoginPage ->
             "#/login"
