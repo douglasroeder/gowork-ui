@@ -208,7 +208,7 @@ view model =
                         ]
     in
         div []
-            [ pageHeader model
+            [ navBar model
             , page
             ]
 
@@ -216,7 +216,7 @@ view model =
 contactsBoardLinkView : Model -> Html Msg
 contactsBoardLinkView { loggedIn } =
     if loggedIn then
-        a [ onClick (Navigate ContactsBoardPage) ]
+        a [ class "nav-item nav-link", onClick (Navigate ContactsBoardPage) ]
             [ text "Contacts" ]
     else
         text ""
@@ -225,28 +225,22 @@ contactsBoardLinkView { loggedIn } =
 contactsNewLinkView : Model -> Html Msg
 contactsNewLinkView { loggedIn } =
     if loggedIn then
-        a [ onClick (Navigate ContactsNewPage) ]
+        a [ class "nav-item nav-link", onClick (Navigate ContactsNewPage) ]
             [ text "New Contact" ]
     else
         text ""
 
 
-pageHeader : Model -> Html Msg
-pageHeader model =
-    header []
-        [ a [ onClick (Navigate HomePage) ] [ text "Home" ]
-        , ul []
-            [ li []
-                [ contactsBoardLinkView model
-                ]
-            , li []
-                [ contactsNewLinkView model
-                ]
-            ]
-        , ul []
-            [ li []
-                [ authHeaderView model
-                ]
+navBar : Model -> Html Msg
+navBar model =
+    nav [ class "navbar navbar-expand-lg navbar-light bg-light" ]
+        [ a [ class "navbar-brand", href "#" ]
+            [ text "OS app" ]
+        , div [ class "navbar-nav" ]
+            [ a [ class "nav-item nav-link", onClick (Navigate HomePage) ] [ text "Home" ]
+            , contactsBoardLinkView model
+            , contactsNewLinkView model
+            , authHeaderView model
             ]
         ]
 
@@ -254,10 +248,9 @@ pageHeader model =
 authHeaderView : Model -> Html Msg
 authHeaderView model =
     if model.loggedIn then
-        a [ href "#", onClick Logout ] [ text "Logout" ]
+        a [ class "nav-item nav-link", onClick Logout ] [ text "Logout" ]
     else
-        a [ href "#/login" ]
-            [ text "Login" ]
+        a [ class "nav-item nav-link", onClick (Navigate LoginPage) ] [ text "Login" ]
 
 
 
