@@ -1,4 +1,4 @@
-module ContactsBoard exposing (..)
+module Contacts.Board exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

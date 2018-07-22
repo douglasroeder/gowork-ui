@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Navigation
-import ContactsBoard
+import Contacts.Board
 import Login
 
 
@@ -13,7 +13,7 @@ import Login
 
 type alias Model =
     { page : Page
-    , contactsBoard : ContactsBoard.Model
+    , contactsBoardModel : Contacts.Board.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -45,14 +45,14 @@ init flags location =
             authRedirect page loggedIn
 
         ( contactsboardInitModel, contactsboardCmd ) =
-            ContactsBoard.init
+            Contacts.Board.init
 
         ( loginInitModel, loginCmd ) =
             Login.init
 
         initModel =
             { page = updatedPage
-            , contactsBoard = contactsboardInitModel
+            , contactsBoardModel = contactsboardInitModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -75,7 +75,7 @@ init flags location =
 type Msg
     = Navigate Page
     | ChangePage Page
-    | ContactsBoardMsg ContactsBoard.Msg
+    | ContactsBoardMsg Contacts.Board.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -109,9 +109,9 @@ update msg model =
         ContactsBoardMsg msg ->
             let
                 ( contactsBoardModel, cmd ) =
-                    ContactsBoard.update msg model.contactsBoard
+                    Contacts.Board.update msg model.contactsBoardModel
             in
-                ( { model | contactsBoard = contactsBoardModel }
+                ( { model | contactsBoardModel = contactsBoardModel }
                 , Cmd.map ContactsBoardMsg cmd
                 )
 
@@ -171,7 +171,7 @@ view model =
 
                 ContactsBoardPage ->
                     Html.map ContactsBoardMsg
-                        (ContactsBoard.view model.contactsBoard)
+                        (Contacts.Board.view model.contactsBoardModel)
 
                 LoginPage ->
                     Html.map LoginMsg
@@ -232,7 +232,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         contactsBoardSub =
-            ContactsBoard.subscriptions model.contactsBoard
+            Contacts.Board.subscriptions model.contactsBoardModel
     in
         Sub.batch
             [ Sub.map ContactsBoardMsg contactsBoardSub
