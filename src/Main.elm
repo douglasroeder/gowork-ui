@@ -6,6 +6,7 @@ import Html.Events exposing (..)
 import Navigation
 import Contacts.Board
 import Contacts.New
+import Contacts.Edit
 import Login
 
 
@@ -16,6 +17,7 @@ type alias Model =
     { page : Page
     , contactsBoardModel : Contacts.Board.Model
     , contactsNewModel : Contacts.New.Model
+    , contactsEditModel : Contacts.Edit.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -28,12 +30,14 @@ type Page
     | LoginPage
     | ContactsBoardPage
     | ContactsNewPage
+    | ContactsEditPage
 
 
 authPages : List Page
 authPages =
     [ ContactsBoardPage
     , ContactsNewPage
+    , ContactsEditPage
     ]
 
 
@@ -55,6 +59,9 @@ init flags location =
         ( contactsNewInitModel, contactsNewCmd ) =
             Contacts.New.init
 
+        ( contactsEditInitModel, contactsEditCmd ) =
+            Contacts.Edit.init
+
         ( loginInitModel, loginCmd ) =
             Login.init
 
@@ -62,6 +69,7 @@ init flags location =
             { page = updatedPage
             , contactsBoardModel = contactsboardInitModel
             , contactsNewModel = contactsNewInitModel
+            , contactsEditModel = contactsEditInitModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -71,6 +79,7 @@ init flags location =
             Cmd.batch
                 [ Cmd.map ContactsBoardMsg contactsboardCmd
                 , Cmd.map ContactsNewMsg contactsNewCmd
+                , Cmd.map ContactsEditMsg contactsEditCmd
                 , Cmd.map LoginMsg loginCmd
                 , cmd
                 ]
@@ -87,6 +96,7 @@ type Msg
     | ChangePage Page
     | ContactsBoardMsg Contacts.Board.Msg
     | ContactsNewMsg Contacts.New.Msg
+    | ContactsEditMsg Contacts.Edit.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -121,9 +131,23 @@ update msg model =
             let
                 ( contactsBoardModel, cmd ) =
                     Contacts.Board.update msg model.contactsBoardModel
+
+                navigateCmd =
+                    case msg of
+                        Contacts.Board.GotoNewContact ->
+                            Navigation.modifyUrl <| pageToHash ContactsNewPage
+
+                        Contacts.Board.GotoEditContact id ->
+                            Navigation.modifyUrl <| pageToHash ContactsEditPage
+
+                        _ ->
+                            Cmd.none
             in
                 ( { model | contactsBoardModel = contactsBoardModel }
-                , Cmd.map ContactsBoardMsg cmd
+                , Cmd.batch
+                    [ Cmd.map ContactsBoardMsg cmd
+                    , navigateCmd
+                    ]
                 )
 
         ContactsNewMsg msg ->
@@ -133,6 +157,15 @@ update msg model =
             in
                 ( { model | contactsNewModel = contactsNewModel }
                 , Cmd.map ContactsNewMsg cmd
+                )
+
+        ContactsEditMsg msg ->
+            let
+                ( contactsEditModel, cmd ) =
+                    Contacts.Edit.update msg model.contactsEditModel
+            in
+                ( { model | contactsEditModel = contactsEditModel }
+                , Cmd.map ContactsEditMsg cmd
                 )
 
         LoginMsg msg ->
@@ -196,6 +229,10 @@ view model =
                 ContactsNewPage ->
                     Html.map ContactsNewMsg
                         (Contacts.New.view model.contactsNewModel)
+
+                ContactsEditPage ->
+                    Html.map ContactsEditMsg
+                        (Contacts.Edit.view model.contactsEditModel)
 
                 LoginPage ->
                     Html.map LoginMsg
@@ -283,6 +320,9 @@ hashToPage hash =
         "#/contacts/new" ->
             ContactsNewPage
 
+        "#/contacts/edit" ->
+            ContactsEditPage
+
         "#/login" ->
             LoginPage
 
@@ -301,6 +341,9 @@ pageToHash page =
 
         ContactsNewPage ->
             "#/contacts/new"
+
+        ContactsEditPage ->
+            "#/contacts/edit"
 
         LoginPage ->
             "#/login"

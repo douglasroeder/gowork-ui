@@ -120,27 +120,33 @@ loginForm model =
     Html.form [ class "add-runner", onSubmit Submit ]
         [ fieldset []
             [ legend [] [ text "Login" ]
-            , div []
+            , div [ class "form-group" ]
                 [ label [] [ text "User Name" ]
                 , input
                     [ type_ "text"
+                    , class "form-control"
                     , value model.username
                     , onInput UsernameInput
                     ]
                     []
                 ]
-            , div []
+            , div [ class "form-group" ]
                 [ label [] [ text "Password" ]
                 , input
                     [ type_ "password"
+                    , class "form-control"
                     , value model.password
                     , onInput PasswordInput
                     ]
                     []
                 ]
-            , div []
+            , div [ class "form-group" ]
                 [ label [] []
-                , button [ type_ "submit" ] [ text "Login" ]
+                , button
+                    [ class "btn btn-primary"
+                    , type_ "submit"
+                    ]
+                    [ text "Login" ]
                 ]
             ]
         ]
@@ -153,7 +159,7 @@ errorPanel error =
             text ""
 
         Just msg ->
-            div [ class "error" ]
+            div [ class "alert alert-danger" ]
                 [ text msg ]
 
 

@@ -42,6 +42,8 @@ init =
 type Msg
     = SearchInput String
     | Search
+    | GotoNewContact
+    | GotoEditContact Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,13 +55,21 @@ update msg model =
         Search ->
             ( model, Cmd.none )
 
+        GotoNewContact ->
+            model ! []
+
+        GotoEditContact id ->
+            model ! []
+
 
 view : Model -> Html Msg
 view model =
     div [ class "main" ]
         [ errorPanel model.error
-        , searchForm model.query
+        , div []
+            [ searchForm model.query ]
         , contacts model
+        , button [ type_ "button", class "btn btn-primary", onClick GotoNewContact ] [ text "New" ]
         ]
 
 
@@ -78,7 +88,7 @@ errorPanel error =
 
 searchForm : String -> Html Msg
 searchForm query =
-    Html.form [ onSubmit Search ]
+    Html.form [ class "form-inline", onSubmit Search ]
         [ input
             [ type_ "text"
             , placeholder "Search for contact..."
@@ -100,10 +110,12 @@ contacts { contacts } =
 
 
 contact : Contact -> Html Msg
-contact { name, city } =
+contact { id, name, city } =
     tr []
         [ td [] [ text name ]
         , td [] [ text city ]
+        , td []
+            [ a [ onClick (GotoEditContact id) ] [ text "edit" ] ]
         ]
 
 
@@ -113,6 +125,7 @@ contactsHeader =
         [ tr []
             [ th [] [ text "Name" ]
             , th [] [ text "City" ]
+            , th [] []
             ]
         ]
 
