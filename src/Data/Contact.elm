@@ -1,7 +1,9 @@
 module Data.Contact exposing (Contact, decoder)
 
+import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (decode, required)
+import Data.Helpers exposing (dateDecoder)
 
 
 type alias Contact =
@@ -19,7 +21,7 @@ type alias Contact =
     , city : String
     , state : State
     , countryCode : String
-    , createdAt : String
+    , createdAt : Date
     }
 
 
@@ -52,7 +54,7 @@ decoder =
         |> required "city" Decode.string
         |> required "state" stateDecoder
         |> required "country_code" Decode.string
-        |> required "created_at" Decode.string
+        |> required "created_at" dateDecoder
 
 
 stateDecoder : Decoder State
