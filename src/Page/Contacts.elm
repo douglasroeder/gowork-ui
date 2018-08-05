@@ -1,4 +1,4 @@
-module Page.Contacts exposing (Model, Msg, init, update, view)
+module Page.Contacts exposing (Model, Msg, initModel, update, view)
 
 import Html exposing (..)
 import Data.Contact as Contact exposing (Contact)
@@ -10,8 +10,8 @@ type alias Model =
     }
 
 
-init : Model
-init =
+initModel : Model
+initModel =
     { contacts = []
     , errors = []
     }

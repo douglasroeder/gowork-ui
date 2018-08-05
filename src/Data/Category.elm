@@ -1,4 +1,4 @@
-module Data.Category exposing (Category, decoder)
+module Data.Category exposing (Category, decoder, listDecoder)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (decode, required)
@@ -15,3 +15,8 @@ decoder =
     decode Category
         |> required "id" Decode.int
         |> required "name" Decode.string
+
+
+listDecoder : Decoder (List Category)
+listDecoder =
+    Decode.list decoder

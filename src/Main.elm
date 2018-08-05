@@ -4,9 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Navigation
-import Contacts.Board
-import Contacts.New
-import Contacts.Edit
+import Page.Categories
 import Login
 
 
@@ -15,9 +13,7 @@ import Login
 
 type alias Model =
     { page : Page
-    , contactsBoardModel : Contacts.Board.Model
-    , contactsNewModel : Contacts.New.Model
-    , contactsEditModel : Contacts.Edit.Model
+    , categoriesModel : Page.Categories.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -28,16 +24,12 @@ type Page
     = NotFound
     | HomePage
     | LoginPage
-    | ContactsBoardPage
-    | ContactsNewPage
-    | ContactsEditPage
+    | CategoriesPage
 
 
 authPages : List Page
 authPages =
-    [ ContactsBoardPage
-    , ContactsNewPage
-    , ContactsEditPage
+    [ CategoriesPage
     ]
 
 
@@ -53,23 +45,15 @@ init flags location =
         ( updatedPage, cmd ) =
             authRedirect page loggedIn
 
-        ( contactsboardInitModel, contactsboardCmd ) =
-            Contacts.Board.init
-
-        ( contactsNewInitModel, contactsNewCmd ) =
-            Contacts.New.init
-
-        ( contactsEditInitModel, contactsEditCmd ) =
-            Contacts.Edit.init
+        ( categoriesInitModel, categoriesCmd ) =
+            Page.Categories.init
 
         ( loginInitModel, loginCmd ) =
             Login.init
 
         initModel =
             { page = updatedPage
-            , contactsBoardModel = contactsboardInitModel
-            , contactsNewModel = contactsNewInitModel
-            , contactsEditModel = contactsEditInitModel
+            , categoriesModel = categoriesInitModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -77,9 +61,7 @@ init flags location =
 
         cmds =
             Cmd.batch
-                [ Cmd.map ContactsBoardMsg contactsboardCmd
-                , Cmd.map ContactsNewMsg contactsNewCmd
-                , Cmd.map ContactsEditMsg contactsEditCmd
+                [ Cmd.map CategoriesMsg categoriesCmd
                 , Cmd.map LoginMsg loginCmd
                 , cmd
                 ]
@@ -94,9 +76,7 @@ init flags location =
 type Msg
     = Navigate Page
     | ChangePage Page
-    | ContactsBoardMsg Contacts.Board.Msg
-    | ContactsNewMsg Contacts.New.Msg
-    | ContactsEditMsg Contacts.Edit.Msg
+    | CategoriesMsg Page.Categories.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -127,45 +107,15 @@ update msg model =
             in
                 ( { model | page = updatedPage }, cmd )
 
-        ContactsBoardMsg msg ->
+        CategoriesMsg msg ->
             let
-                ( contactsBoardModel, cmd ) =
-                    Contacts.Board.update msg model.contactsBoardModel
-
-                navigateCmd =
-                    case msg of
-                        Contacts.Board.GotoNewContact ->
-                            Navigation.modifyUrl <| pageToHash ContactsNewPage
-
-                        Contacts.Board.GotoEditContact id ->
-                            Navigation.modifyUrl <| pageToHash ContactsEditPage
-
-                        _ ->
-                            Cmd.none
+                ( categoriesModel, cmd ) =
+                    Page.Categories.update msg model.categoriesModel
             in
-                ( { model | contactsBoardModel = contactsBoardModel }
+                ( { model | categoriesModel = categoriesModel }
                 , Cmd.batch
-                    [ Cmd.map ContactsBoardMsg cmd
-                    , navigateCmd
+                    [ Cmd.map CategoriesMsg cmd
                     ]
-                )
-
-        ContactsNewMsg msg ->
-            let
-                ( contactsNewModel, cmd ) =
-                    Contacts.New.update msg model.contactsNewModel
-            in
-                ( { model | contactsNewModel = contactsNewModel }
-                , Cmd.map ContactsNewMsg cmd
-                )
-
-        ContactsEditMsg msg ->
-            let
-                ( contactsEditModel, cmd ) =
-                    Contacts.Edit.update msg model.contactsEditModel
-            in
-                ( { model | contactsEditModel = contactsEditModel }
-                , Cmd.map ContactsEditMsg cmd
                 )
 
         LoginMsg msg ->
@@ -222,17 +172,9 @@ view model =
                             [ text "Home Page" ]
                         ]
 
-                ContactsBoardPage ->
-                    Html.map ContactsBoardMsg
-                        (Contacts.Board.view model.contactsBoardModel)
-
-                ContactsNewPage ->
-                    Html.map ContactsNewMsg
-                        (Contacts.New.view model.contactsNewModel)
-
-                ContactsEditPage ->
-                    Html.map ContactsEditMsg
-                        (Contacts.Edit.view model.contactsEditModel)
+                CategoriesPage ->
+                    Html.map CategoriesMsg
+                        (Page.Categories.view model.categoriesModel)
 
                 LoginPage ->
                     Html.map LoginMsg
@@ -250,20 +192,11 @@ view model =
             ]
 
 
-contactsBoardLinkView : Model -> Html Msg
-contactsBoardLinkView { loggedIn } =
+categoriesLinkView : Model -> Html Msg
+categoriesLinkView { loggedIn } =
     if loggedIn then
-        a [ class "nav-item nav-link", onClick (Navigate ContactsBoardPage) ]
-            [ text "Contacts" ]
-    else
-        text ""
-
-
-contactsNewLinkView : Model -> Html Msg
-contactsNewLinkView { loggedIn } =
-    if loggedIn then
-        a [ class "nav-item nav-link", onClick (Navigate ContactsNewPage) ]
-            [ text "New Contact" ]
+        a [ class "nav-item nav-link", onClick (Navigate CategoriesPage) ]
+            [ text "Categories" ]
     else
         text ""
 
@@ -275,8 +208,7 @@ navBar model =
             [ text "OS app" ]
         , div [ class "navbar-nav" ]
             [ a [ class "nav-item nav-link", onClick (Navigate HomePage) ] [ text "Home" ]
-            , contactsBoardLinkView model
-            , contactsNewLinkView model
+            , categoriesLinkView model
             , authHeaderView model
             ]
         ]
@@ -297,11 +229,11 @@ authHeaderView model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     let
-        contactsBoardSub =
-            Contacts.Board.subscriptions model.contactsBoardModel
+        categoriesSub =
+            Page.Categories.subscriptions model.categoriesModel
     in
         Sub.batch
-            [ Sub.map ContactsBoardMsg contactsBoardSub
+            [ Sub.map CategoriesMsg categoriesSub
             ]
 
 
@@ -314,14 +246,8 @@ hashToPage hash =
         "" ->
             HomePage
 
-        "#/contacts" ->
-            ContactsBoardPage
-
-        "#/contacts/new" ->
-            ContactsNewPage
-
-        "#/contacts/edit" ->
-            ContactsEditPage
+        "#/categories" ->
+            CategoriesPage
 
         "#/login" ->
             LoginPage
@@ -336,14 +262,8 @@ pageToHash page =
         HomePage ->
             "#/"
 
-        ContactsBoardPage ->
-            "#/contacts"
-
-        ContactsNewPage ->
-            "#/contacts/new"
-
-        ContactsEditPage ->
-            "#/contacts/edit"
+        CategoriesPage ->
+            "#/categories"
 
         LoginPage ->
             "#/login"
