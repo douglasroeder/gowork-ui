@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Navigation
 import Page.Categories
+import Page.Category
 import Login
 
 
@@ -14,6 +15,7 @@ import Login
 type alias Model =
     { page : Page
     , categoriesModel : Page.Categories.Model
+    , categoryModel : Page.Category.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -25,11 +27,13 @@ type Page
     | HomePage
     | LoginPage
     | CategoriesPage
+    | CategoryPage
 
 
 authPages : List Page
 authPages =
     [ CategoriesPage
+    , CategoryPage
     ]
 
 
@@ -48,12 +52,16 @@ init flags location =
         ( categoriesInitModel, categoriesCmd ) =
             Page.Categories.init
 
+        ( categoryInitModel, categoryCmd ) =
+            Page.Category.init
+
         ( loginInitModel, loginCmd ) =
             Login.init
 
         initModel =
             { page = updatedPage
             , categoriesModel = categoriesInitModel
+            , categoryModel = categoryInitModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -62,6 +70,7 @@ init flags location =
         cmds =
             Cmd.batch
                 [ Cmd.map CategoriesMsg categoriesCmd
+                , Cmd.map CategoryMsg categoryCmd
                 , Cmd.map LoginMsg loginCmd
                 , cmd
                 ]
@@ -77,6 +86,7 @@ type Msg
     = Navigate Page
     | ChangePage Page
     | CategoriesMsg Page.Categories.Msg
+    | CategoryMsg Page.Category.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -115,6 +125,17 @@ update msg model =
                 ( { model | categoriesModel = categoriesModel }
                 , Cmd.batch
                     [ Cmd.map CategoriesMsg cmd
+                    ]
+                )
+
+        CategoryMsg msg ->
+            let
+                ( categoryModel, cmd ) =
+                    Page.Category.update msg model.categoryModel
+            in
+                ( { model | categoryModel = categoryModel }
+                , Cmd.batch
+                    [ Cmd.map CategoryMsg cmd
                     ]
                 )
 
@@ -176,6 +197,10 @@ view model =
                     Html.map CategoriesMsg
                         (Page.Categories.view model.categoriesModel)
 
+                CategoryPage ->
+                    Html.map CategoryMsg
+                        (Page.Category.view model.categoryModel)
+
                 LoginPage ->
                     Html.map LoginMsg
                         (Login.view model.login)
@@ -201,6 +226,15 @@ categoriesLinkView { loggedIn } =
         text ""
 
 
+categoryLinkView : Model -> Html Msg
+categoryLinkView { loggedIn } =
+    if loggedIn then
+        a [ class "nav-item nav-link", onClick (Navigate CategoryPage) ]
+            [ text "New Category" ]
+    else
+        text ""
+
+
 navBar : Model -> Html Msg
 navBar model =
     nav [ class "navbar navbar-expand-lg navbar-light bg-light" ]
@@ -209,6 +243,7 @@ navBar model =
         , div [ class "navbar-nav" ]
             [ a [ class "nav-item nav-link", onClick (Navigate HomePage) ] [ text "Home" ]
             , categoriesLinkView model
+            , categoryLinkView model
             , authHeaderView model
             ]
         ]
@@ -249,6 +284,9 @@ hashToPage hash =
         "#/categories" ->
             CategoriesPage
 
+        "#/categories/new" ->
+            CategoryPage
+
         "#/login" ->
             LoginPage
 
@@ -264,6 +302,9 @@ pageToHash page =
 
         CategoriesPage ->
             "#/categories"
+
+        CategoryPage ->
+            "#/categories/new"
 
         LoginPage ->
             "#/login"
