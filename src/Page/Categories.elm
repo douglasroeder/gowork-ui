@@ -30,7 +30,7 @@ type Msg
 
 apiUrl : String
 apiUrl =
-    "http://localhost:8080/categories"
+    "http://localhost:8080/v1/categories"
 
 
 fetchCategories : Cmd Msg

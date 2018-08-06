@@ -32,7 +32,7 @@ type Msg
 
 apiUrl : String
 apiUrl =
-    "http://localhost:8080/categories"
+    "http://localhost:8080/v1/categories"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,13 +62,18 @@ submitForm name =
         req =
             Http.request
                 { method = "POST"
-                , headers = [ Http.header "Content-Type" "application/json" ]
+                , headers =
+                    [ Http.header "Content-Type" "application/json"
+                    ]
                 , url = apiUrl
                 , body = Http.jsonBody (Data.Category.encoder category)
                 , expect = Http.expectJson Data.Category.decoder
                 , timeout = Nothing
                 , withCredentials = False
                 }
+
+        debug =
+            Debug.log "request" req
     in
         Http.send SubmitResponse <| req
 
