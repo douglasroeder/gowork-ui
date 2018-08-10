@@ -1,7 +1,9 @@
 module Page.Categories exposing (Model, Msg, init, update, subscriptions, view)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Http exposing (..)
+import Route exposing (Route(..))
 import Data.Category exposing (Category)
 
 
@@ -94,7 +96,11 @@ category { id, name } =
         [ td [] [ text (toString id) ]
         , td [] [ text name ]
         , td []
-            [ a [] [ text "edit" ] ]
+            [ Route.linkTo
+                (CategoryEditRoute id)
+                [ class "btn btn-default" ]
+                [ text "edit" ]
+            ]
         ]
 
 

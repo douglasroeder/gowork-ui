@@ -7,13 +7,15 @@ import Navigation
 import Page.Categories
 import Page.Category
 import Login
+import Route exposing (Route(..))
 
 
 -- model
 
 
 type alias Model =
-    { page : Page
+    { route : Route
+    , location : Navigation.Location
     , categoriesModel : Page.Categories.Model
     , categoryModel : Page.Category.Model
     , login : Login.Model
@@ -22,32 +24,17 @@ type alias Model =
     }
 
 
-type Page
-    = NotFound
-    | HomePage
-    | LoginPage
-    | CategoriesPage
-    | CategoryPage
-
-
-authPages : List Page
-authPages =
-    [ CategoriesPage
-    , CategoryPage
-    ]
-
-
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     let
-        page =
-            hashToPage location.hash
-
         loggedIn =
             flags.token /= Nothing
 
-        ( updatedPage, cmd ) =
-            authRedirect page loggedIn
+        route =
+            Route.parse location
+
+        ( updatedRoute, cmd ) =
+            Route.authRedirect route loggedIn
 
         ( categoriesInitModel, categoriesCmd ) =
             Page.Categories.init
@@ -59,7 +46,8 @@ init flags location =
             Login.init
 
         initModel =
-            { page = updatedPage
+            { route = updatedRoute
+            , location = location
             , categoriesModel = categoriesInitModel
             , categoryModel = categoryInitModel
             , login = loginInitModel
@@ -83,39 +71,25 @@ init flags location =
 
 
 type Msg
-    = Navigate Page
-    | ChangePage Page
+    = OnLocationChange Navigation.Location
     | CategoriesMsg Page.Categories.Msg
     | CategoryMsg Page.Category.Msg
     | LoginMsg Login.Msg
     | Logout
 
 
-authForPage : Page -> Bool -> Bool
-authForPage page loggedIn =
-    loggedIn || not (List.member page authPages)
-
-
-authRedirect : Page -> Bool -> ( Page, Cmd Msg )
-authRedirect page loggedIn =
-    if authForPage page loggedIn then
-        ( page, Cmd.none )
-    else
-        ( LoginPage, Navigation.modifyUrl <| pageToHash LoginPage )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Navigate page ->
-            ( { model | page = page }, Navigation.newUrl <| pageToHash page )
-
-        ChangePage page ->
+        OnLocationChange location ->
             let
-                ( updatedPage, cmd ) =
-                    authRedirect page model.loggedIn
+                route =
+                    Route.parse location
+
+                ( updatedRoute, cmd ) =
+                    Route.authRedirect route model.loggedIn
             in
-                ( { model | page = updatedPage }, cmd )
+                ( { model | route = updatedRoute, location = location }, cmd )
 
         CategoriesMsg msg ->
             let
@@ -173,7 +147,7 @@ update msg model =
               }
             , Cmd.batch
                 [ deleteToken ()
-                , Navigation.modifyUrl <| pageToHash HomePage
+                , Route.goto HomeRoute
                 ]
             )
 
@@ -186,26 +160,30 @@ view : Model -> Html Msg
 view model =
     let
         page =
-            case model.page of
-                HomePage ->
+            case model.route of
+                HomeRoute ->
                     div [ class "main" ]
                         [ h1 []
                             [ text "Home Page" ]
                         ]
 
-                CategoriesPage ->
+                CategoriesRoute ->
                     Html.map CategoriesMsg
                         (Page.Categories.view model.categoriesModel)
 
-                CategoryPage ->
+                CategoryAddRoute ->
                     Html.map CategoryMsg
                         (Page.Category.view model.categoryModel)
 
-                LoginPage ->
+                CategoryEditRoute id ->
+                    Html.map CategoryMsg
+                        (Page.Category.view model.categoryModel)
+
+                LoginRoute ->
                     Html.map LoginMsg
                         (Login.view model.login)
 
-                NotFound ->
+                NotFoundRoute ->
                     div [ class "main" ]
                         [ h1 []
                             [ text "Page Not Found!" ]
@@ -220,7 +198,9 @@ view model =
 categoriesLinkView : Model -> Html Msg
 categoriesLinkView { loggedIn } =
     if loggedIn then
-        a [ class "nav-item nav-link", onClick (Navigate CategoriesPage) ]
+        Route.linkTo
+            CategoriesRoute
+            [ class "nav-item nav-link" ]
             [ text "Categories" ]
     else
         text ""
@@ -229,7 +209,9 @@ categoriesLinkView { loggedIn } =
 categoryLinkView : Model -> Html Msg
 categoryLinkView { loggedIn } =
     if loggedIn then
-        a [ class "nav-item nav-link", onClick (Navigate CategoryPage) ]
+        Route.linkTo
+            CategoryAddRoute
+            [ class "nav-item nav-link" ]
             [ text "New Category" ]
     else
         text ""
@@ -241,7 +223,10 @@ navBar model =
         [ a [ class "navbar-brand", href "#" ]
             [ text "OS app" ]
         , div [ class "navbar-nav" ]
-            [ a [ class "nav-item nav-link", onClick (Navigate HomePage) ] [ text "Home" ]
+            [ Route.linkTo
+                HomeRoute
+                [ class "nav-item nav-link" ]
+                [ text "Home" ]
             , categoriesLinkView model
             , categoryLinkView model
             , authHeaderView model
@@ -252,9 +237,13 @@ navBar model =
 authHeaderView : Model -> Html Msg
 authHeaderView model =
     if model.loggedIn then
-        a [ class "nav-item nav-link", onClick Logout ] [ text "Logout" ]
+        a [ class "nav-item nav-link", onClick Logout ]
+            [ text "Logout" ]
     else
-        a [ class "nav-item nav-link", onClick (Navigate LoginPage) ] [ text "Login" ]
+        Route.linkTo
+            LoginRoute
+            [ class "nav-item nav-link" ]
+            [ text "Login" ]
 
 
 
@@ -272,61 +261,13 @@ subscriptions model =
             ]
 
 
-hashToPage : String -> Page
-hashToPage hash =
-    case hash of
-        "#/" ->
-            HomePage
-
-        "" ->
-            HomePage
-
-        "#/categories" ->
-            CategoriesPage
-
-        "#/categories/new" ->
-            CategoryPage
-
-        "#/login" ->
-            LoginPage
-
-        _ ->
-            NotFound
-
-
-pageToHash : Page -> String
-pageToHash page =
-    case page of
-        HomePage ->
-            "#/"
-
-        CategoriesPage ->
-            "#/categories"
-
-        CategoryPage ->
-            "#/categories/new"
-
-        LoginPage ->
-            "#/login"
-
-        NotFound ->
-            "#notfound"
-
-
-locationToMsg : Navigation.Location -> Msg
-locationToMsg location =
-    location.hash
-        |> hashToPage
-        |> ChangePage
-
-
 type alias Flags =
     { token : Maybe String }
 
 
 main : Program Flags Model Msg
 main =
-    Navigation.programWithFlags locationToMsg
+    Navigation.programWithFlags OnLocationChange
         { init = init
         , update = update
         , view = view

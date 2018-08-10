@@ -1,12 +1,16 @@
-module Data.Category exposing (Category, encoder, decoder, listDecoder)
+module Data.Category exposing (Category, CategoryId, encoder, decoder, listDecoder)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required)
 
 
+type alias CategoryId =
+    Int
+
+
 type alias Category =
-    { id : Int
+    { id : CategoryId
     , name : String
     }
 
