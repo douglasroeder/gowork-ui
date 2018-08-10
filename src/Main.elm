@@ -33,26 +33,28 @@ init flags location =
         route =
             Route.parse location
 
-        ( updatedRoute, cmd ) =
+        ( updatedRoute, routeCmd ) =
             Route.authRedirect route loggedIn
 
         ( loginInitModel, loginCmd ) =
             Login.init
 
-        initModel =
-            { route = updatedRoute
-            , location = location
-            , categoriesModel = Page.Categories.initModel
-            , categoryModel = Page.Category.initModel
-            , login = loginInitModel
-            , token = flags.token
-            , loggedIn = loggedIn
-            }
+        ( initModel, mountCmd ) =
+            mount
+                { route = updatedRoute
+                , location = location
+                , categoriesModel = Page.Categories.initModel
+                , categoryModel = Page.Category.initModel
+                , login = loginInitModel
+                , token = flags.token
+                , loggedIn = loggedIn
+                }
 
         cmds =
             Cmd.batch
                 [ Cmd.map LoginMsg loginCmd
-                , cmd
+                , routeCmd
+                , mountCmd
                 ]
     in
         ( initModel, cmds )

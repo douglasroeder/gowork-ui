@@ -18,7 +18,7 @@ import Data.Category exposing (Category, CategoryId, decoder)
 type alias Model =
     { name : String
     , nameError : Maybe String
-    , error : Maybe String
+    , apiError : Maybe String
     }
 
 
@@ -26,7 +26,7 @@ initModel : Model
 initModel =
     { name = ""
     , nameError = Nothing
-    , error = Nothing
+    , apiError = Nothing
     }
 
 
@@ -97,20 +97,20 @@ update msg model =
                     ( initModel, Cmd.none )
 
                 Err err ->
-                    ( { model | error = Just "Error calling api" }, Cmd.none )
+                    ( { model | apiError = Just "Error calling api" }, Cmd.none )
 
         FetchCategoryResponse res ->
             case res of
                 Ok category ->
                     ( { model
                         | name = category.name
-                        , error = Nothing
+                        , apiError = Nothing
                       }
                     , Cmd.none
                     )
 
                 Err err ->
-                    ( { model | error = Just "Error adding category" }, Cmd.none )
+                    ( { model | apiError = Just "Error adding category" }, Cmd.none )
 
 
 submitForm : String -> Cmd Msg
@@ -135,6 +135,17 @@ submitForm name =
         Http.send SubmitResponse <| req
 
 
+renderError : Maybe String -> Html Msg
+renderError maybeError =
+    case maybeError of
+        Just error ->
+            div [ class "alert alert-danger" ]
+                [ text error ]
+
+        Nothing ->
+            text ""
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -152,6 +163,7 @@ view model =
     in
         div []
             [ h2 [] [ text "Category" ]
+            , renderError model.apiError
             , input [ class inputClass, onInput NameInput, value model.name ] []
             , nameErrorMessage
             , button [ onClick Submit ] [ text "Save" ]
