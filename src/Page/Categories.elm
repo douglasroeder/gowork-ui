@@ -1,4 +1,13 @@
-module Page.Categories exposing (Model, Msg, init, update, subscriptions, view)
+module Page.Categories
+    exposing
+        ( Model
+        , Msg
+        , initModel
+        , mount
+        , update
+        , subscriptions
+        , view
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -20,8 +29,8 @@ initModel =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+mount : Model -> ( Model, Cmd Msg )
+mount model =
     ( initModel, fetchCategories )
 
 

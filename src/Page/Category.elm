@@ -1,9 +1,19 @@
-module Page.Category exposing (Model, Msg, init, update, view)
+module Page.Category
+    exposing
+        ( Model
+        , Msg
+        , init
+        , initModel
+        , mount
+        , update
+        , view
+        )
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
-import Data.Category exposing (Category)
+import Data.Category exposing (Category, CategoryId, decoder)
 
 
 type alias Model =
@@ -24,10 +34,31 @@ init =
     ( initModel, Cmd.none )
 
 
+mount : Model -> Maybe CategoryId -> ( Model, Cmd Msg )
+mount model maybeId =
+    case maybeId of
+        Just id ->
+            let
+                url =
+                    apiUrl ++ "/" ++ (toString id)
+
+                req =
+                    Http.get url decoder
+
+                cmd =
+                    Http.send FetchCategoryResponse req
+            in
+                ( initModel, cmd )
+
+        Nothing ->
+            init
+
+
 type Msg
     = NameInput String
     | Submit
     | SubmitResponse (Result Http.Error Category)
+    | FetchCategoryResponse (Result Http.Error Category)
 
 
 apiUrl : String
@@ -47,7 +78,20 @@ update msg model =
         SubmitResponse res ->
             case res of
                 Ok category ->
-                    model ! []
+                    ( initModel, Cmd.none )
+
+                Err err ->
+                    ( { model | error = Just "Error calling api" }, Cmd.none )
+
+        FetchCategoryResponse res ->
+            case res of
+                Ok category ->
+                    ( { model
+                        | name = category.name
+                        , error = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 Err err ->
                     ( { model | error = Just "Error calling api" }, Cmd.none )
@@ -82,6 +126,6 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Category" ]
-        , input [ onInput NameInput ] []
+        , input [ onInput NameInput, value model.name ] []
         , button [ onClick Submit ] [ text "Save" ]
         ]

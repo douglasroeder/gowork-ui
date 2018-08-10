@@ -36,20 +36,14 @@ init flags location =
         ( updatedRoute, cmd ) =
             Route.authRedirect route loggedIn
 
-        ( categoriesInitModel, categoriesCmd ) =
-            Page.Categories.init
-
-        ( categoryInitModel, categoryCmd ) =
-            Page.Category.init
-
         ( loginInitModel, loginCmd ) =
             Login.init
 
         initModel =
             { route = updatedRoute
             , location = location
-            , categoriesModel = categoriesInitModel
-            , categoryModel = categoryInitModel
+            , categoriesModel = Page.Categories.initModel
+            , categoryModel = Page.Category.initModel
             , login = loginInitModel
             , token = flags.token
             , loggedIn = loggedIn
@@ -57,9 +51,7 @@ init flags location =
 
         cmds =
             Cmd.batch
-                [ Cmd.map CategoriesMsg categoriesCmd
-                , Cmd.map CategoryMsg categoryCmd
-                , Cmd.map LoginMsg loginCmd
+                [ Cmd.map LoginMsg loginCmd
                 , cmd
                 ]
     in
@@ -68,6 +60,46 @@ init flags location =
 
 
 -- update
+
+
+mount : Model -> ( Model, Cmd Msg )
+mount model =
+    case model.route of
+        HomeRoute ->
+            model ! []
+
+        LoginRoute ->
+            model ! []
+
+        CategoriesRoute ->
+            let
+                ( subModel, subCmd ) =
+                    Page.Categories.mount model.categoriesModel
+            in
+                ( { model | categoriesModel = subModel }
+                , Cmd.map CategoriesMsg subCmd
+                )
+
+        CategoryAddRoute ->
+            let
+                ( subModel, subCmd ) =
+                    Page.Category.mount model.categoryModel Nothing
+            in
+                ( { model | categoryModel = subModel }
+                , Cmd.map CategoryMsg subCmd
+                )
+
+        CategoryEditRoute id ->
+            let
+                ( subModel, subCmd ) =
+                    Page.Category.mount model.categoryModel (Just id)
+            in
+                ( { model | categoryModel = subModel }
+                , Cmd.map CategoryMsg subCmd
+                )
+
+        NotFoundRoute ->
+            model ! []
 
 
 type Msg
@@ -89,7 +121,7 @@ update msg model =
                 ( updatedRoute, cmd ) =
                     Route.authRedirect route model.loggedIn
             in
-                ( { model | route = updatedRoute, location = location }, cmd )
+                mount { model | route = updatedRoute, location = location }
 
         CategoriesMsg msg ->
             let
