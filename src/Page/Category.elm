@@ -2,7 +2,6 @@ module Page.Category
     exposing
         ( Model
         , Msg
-        , init
         , initModel
         , mount
         , update
@@ -18,6 +17,7 @@ import Data.Category exposing (Category, CategoryId, decoder)
 
 type alias Model =
     { name : String
+    , nameError : Maybe String
     , error : Maybe String
     }
 
@@ -25,6 +25,7 @@ type alias Model =
 initModel : Model
 initModel =
     { name = ""
+    , nameError = Nothing
     , error = Nothing
     }
 
@@ -73,7 +74,22 @@ update msg model =
             ( { model | name = name }, Cmd.none )
 
         Submit ->
-            model ! [ submitForm model.name ]
+            let
+                isValid =
+                    model.name /= ""
+            in
+                if isValid then
+                    ( { model
+                        | nameError = Nothing
+                      }
+                    , submitForm model.name
+                    )
+                else
+                    ( { model
+                        | nameError = Just "name cannot be blank!"
+                      }
+                    , Cmd.none
+                    )
 
         SubmitResponse res ->
             case res of
@@ -94,7 +110,7 @@ update msg model =
                     )
 
                 Err err ->
-                    ( { model | error = Just "Error calling api" }, Cmd.none )
+                    ( { model | error = Just "Error adding category" }, Cmd.none )
 
 
 submitForm : String -> Cmd Msg
@@ -115,17 +131,28 @@ submitForm name =
                 , timeout = Nothing
                 , withCredentials = False
                 }
-
-        debug =
-            Debug.log "request" req
     in
         Http.send SubmitResponse <| req
 
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h2 [] [ text "Category" ]
-        , input [ onInput NameInput, value model.name ] []
-        , button [ onClick Submit ] [ text "Save" ]
-        ]
+    let
+        ( inputClass, nameErrorMessage ) =
+            case model.nameError of
+                Just error ->
+                    ( "form-control is-invalid"
+                    , (div [ class "invalid-feedback" ] [ text error ])
+                    )
+
+                Nothing ->
+                    ( "form-control"
+                    , text ""
+                    )
+    in
+        div []
+            [ h2 [] [ text "Category" ]
+            , input [ class inputClass, onInput NameInput, value model.name ] []
+            , nameErrorMessage
+            , button [ onClick Submit ] [ text "Save" ]
+            ]
