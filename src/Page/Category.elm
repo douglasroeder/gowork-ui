@@ -162,15 +162,15 @@ view model =
                     )
     in
         div [ class "col-md-6" ]
-            [ div [ class "bgc-white p-20 bd" ]
+            [ renderError model.apiError
+            , div [ class "bgc-white p-20 bd" ]
                 [ h4 [ class "c-grey-900" ] [ text "Category" ]
                 , div [ class "mT-30" ]
-                    [ renderError model.apiError
-                    , div [ class "form-group" ]
+                    [ div [ class "form-group" ]
                         [ label [ for "name" ] [ text "Name" ]
                         , input [ class inputClass, id "name", onInput NameInput, value model.name ] []
+                        , nameErrorMessage
                         ]
-                    , nameErrorMessage
                     , button [ class "btn btn-primary", onClick Submit ] [ text "Save" ]
                     ]
                 ]

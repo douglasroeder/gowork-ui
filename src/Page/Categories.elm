@@ -10,6 +10,7 @@ module Page.Categories
         )
 
 import Html exposing (..)
+import Html.Events exposing (onClick)
 import Html.Attributes exposing (..)
 import Http exposing (..)
 import Route exposing (Route(..))
@@ -35,7 +36,8 @@ mount model =
 
 
 type Msg
-    = FetchCategories
+    = ClickAddCategory
+    | FetchCategories
     | CategoriesResponse (Result Http.Error (List Category))
 
 
@@ -56,6 +58,9 @@ fetchCategories =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ClickAddCategory ->
+            model ! [ Route.goto CategoryAddRoute ]
+
         FetchCategories ->
             model ! [ fetchCategories ]
 
@@ -91,7 +96,7 @@ view model =
                 [ div [ class "peer peer-greed" ]
                     [ h4 [ class "c-grey-900 mB-20" ] [ text "Categories" ] ]
                 , div [ class "peer" ]
-                    [ button [ class "btn btn-primary" ] [ text "Add" ] ]
+                    [ button [ class "btn btn-primary", onClick ClickAddCategory ] [ text "Add" ] ]
                 ]
             , div [ class "mT-30" ]
                 [ renderCategories model.categories ]
