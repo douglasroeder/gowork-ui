@@ -12,7 +12,6 @@ module Page.Categories
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (..)
-import Http exposing (..)
 import Route exposing (Route(..))
 import Data.Category exposing (Category)
 import RemoteData exposing (RemoteData(..), WebData)
