@@ -192,6 +192,14 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    div []
+        [ sidebar model
+        , pageContainer model
+        ]
+
+
+pageContainer : Model -> Html Msg
+pageContainer model =
     let
         page =
             case model.route of
@@ -223,10 +231,24 @@ view model =
                             [ text "Page Not Found!" ]
                         ]
     in
-        div []
+        div [ class "page-container" ]
             [ navBar model
             , page
             ]
+
+
+sidebar : Model -> Html Msg
+sidebar model =
+    div [ class "sidebar" ]
+        [ div [ class "sidebar-inner" ]
+            [ div [ class "sidebar-logo" ] []
+            , ul [ class "sidebar-menu" ]
+                [ li [ class "nav-item mT-30 active" ]
+                    [ a [ class "sidebar-link", href "#" ] [ span [ class "title" ] [ text "Dashboard" ] ]
+                    ]
+                ]
+            ]
+        ]
 
 
 categoriesLinkView : Model -> Html Msg

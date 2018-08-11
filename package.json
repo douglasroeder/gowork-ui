@@ -20,12 +20,15 @@
     "build": "gulp build"
   },
   "homepage": "https://github.com/auth0-blog/elm-app-jwt-api",
-  "dependencies": {},
+  "dependencies": {
+    "bootstrap": "^4.0.0"
+  },
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-connect": "^4.0.0",
     "gulp-elm": "^0.6.1",
     "gulp-plumber": "^1.1.0",
+    "gulp-sass": "^4.0.1",
     "gulp-util": "^3.0.7"
   }
 }
