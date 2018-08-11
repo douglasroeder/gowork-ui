@@ -232,9 +232,19 @@ pageContainer model =
                         ]
     in
         div [ class "page-container" ]
-            [ navBar model
-            , page
+            [ div [ class "main-content bgc-grey-100" ]
+                [ div [ class "mainContent" ]
+                    [ div [ class "row gap-20 masonry pos-r" ]
+                        [ page ]
+                    ]
+                ]
+            , footer
             ]
+
+
+footer : Html Msg
+footer =
+    div [ class "bdT ta-c p-30 lh-0 fsz-sm c-grey-600" ] []
 
 
 sidebar : Model -> Html Msg
@@ -244,7 +254,10 @@ sidebar model =
             [ div [ class "sidebar-logo" ] []
             , ul [ class "sidebar-menu" ]
                 [ li [ class "nav-item mT-30 active" ]
-                    [ a [ class "sidebar-link", href "#" ] [ span [ class "title" ] [ text "Dashboard" ] ]
+                    [ homeLinkView
+                    , categoriesLinkView model
+                    , categoryLinkView model
+                    , authLinkView model
                     ]
                 ]
             ]
@@ -256,8 +269,8 @@ categoriesLinkView { loggedIn } =
     if loggedIn then
         Route.linkTo
             CategoriesRoute
-            [ class "nav-item nav-link" ]
-            [ text "Categories" ]
+            [ class "sidebar-link" ]
+            [ span [ class "title" ] [ text "Categories" ] ]
     else
         text ""
 
@@ -267,31 +280,22 @@ categoryLinkView { loggedIn } =
     if loggedIn then
         Route.linkTo
             CategoryAddRoute
-            [ class "nav-item nav-link" ]
-            [ text "New Category" ]
+            [ class "sidebar-link" ]
+            [ span [ class "title" ] [ text "New Category" ] ]
     else
         text ""
 
 
-navBar : Model -> Html Msg
-navBar model =
-    nav [ class "navbar navbar-expand-lg navbar-light bg-light" ]
-        [ a [ class "navbar-brand", href "#" ]
-            [ text "OS app" ]
-        , div [ class "navbar-nav" ]
-            [ Route.linkTo
-                HomeRoute
-                [ class "nav-item nav-link" ]
-                [ text "Home" ]
-            , categoriesLinkView model
-            , categoryLinkView model
-            , authHeaderView model
-            ]
-        ]
+homeLinkView : Html Msg
+homeLinkView =
+    Route.linkTo
+        HomeRoute
+        [ class "sidebar-link" ]
+        [ span [ class "title" ] [ text "Dashboard" ] ]
 
 
-authHeaderView : Model -> Html Msg
-authHeaderView model =
+authLinkView : Model -> Html Msg
+authLinkView model =
     if model.loggedIn then
         a [ class "nav-item nav-link", onClick Logout ]
             [ text "Logout" ]

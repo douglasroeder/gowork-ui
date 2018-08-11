@@ -84,10 +84,29 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h2 [] [ text "Categories" ]
-        , renderCategories model.categories
+    div [ class "col-md-12" ]
+        [ renderApiError model.error
+        , div [ class "bgc-white bd bdrs-3 p-20" ]
+            [ div [ class "peers ai-c" ]
+                [ div [ class "peer peer-greed" ]
+                    [ h4 [ class "c-grey-900 mB-20" ] [ text "Categories" ] ]
+                , div [ class "peer" ]
+                    [ button [ class "btn btn-primary" ] [ text "Add" ] ]
+                ]
+            , div [ class "mT-30" ]
+                [ renderCategories model.categories ]
+            ]
         ]
+
+
+renderApiError : Maybe String -> Html Msg
+renderApiError maybeError =
+    case maybeError of
+        Just error ->
+            div [ class "alert alert-danger" ] [ text error ]
+
+        Nothing ->
+            text ""
 
 
 renderCategories : List Category -> Html Msg
@@ -96,7 +115,7 @@ renderCategories categories =
         |> List.map category
         |> tbody []
         |> (\r -> categoriesHeader :: [ r ])
-        |> table []
+        |> table [ class "table table-hover" ]
 
 
 category : Category -> Html Msg

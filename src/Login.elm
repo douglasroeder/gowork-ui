@@ -109,18 +109,23 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "main" ]
-        [ errorPanel model.error
-        , loginForm model
+    div
+        [ class "col-md-6" ]
+        [ div [ class "bgc-white p-20 bd" ]
+            [ h4 [ class "c-grey-900" ] [ text "Login" ]
+            , div [ class "mT-30" ]
+                [ errorPanel model.error
+                , loginForm model
+                ]
+            ]
         ]
 
 
 loginForm : Model -> Html Msg
 loginForm model =
-    Html.form [ class "add-runner", onSubmit Submit ]
+    Html.form [ onSubmit Submit ]
         [ fieldset []
-            [ legend [] [ text "Login" ]
-            , div [ class "form-group" ]
+            [ div [ class "form-group" ]
                 [ label [] [ text "User Name" ]
                 , input
                     [ type_ "text"
