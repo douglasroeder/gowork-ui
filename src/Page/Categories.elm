@@ -15,17 +15,19 @@ import Html.Attributes exposing (..)
 import Http exposing (..)
 import Route exposing (Route(..))
 import Data.Category exposing (Category)
+import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData.Http
 
 
 type alias Model =
-    { categories : List Category
+    { categories : WebData (List Category)
     , error : Maybe String
     }
 
 
 initModel : Model
 initModel =
-    { categories = []
+    { categories = Loading
     , error = Nothing
     }
 
@@ -38,7 +40,7 @@ mount model =
 type Msg
     = ClickAddCategory
     | FetchCategories
-    | CategoriesResponse (Result Http.Error (List Category))
+    | HandleCategoriesResponse (WebData (List Category))
 
 
 apiUrl : String
@@ -48,11 +50,7 @@ apiUrl =
 
 fetchCategories : Cmd Msg
 fetchCategories =
-    let
-        req =
-            Http.get apiUrl Data.Category.listDecoder
-    in
-        Http.send CategoriesResponse <| req
+    RemoteData.Http.get apiUrl HandleCategoriesResponse Data.Category.listDecoder
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,24 +60,10 @@ update msg model =
             model ! [ Route.goto CategoryAddRoute ]
 
         FetchCategories ->
-            model ! [ fetchCategories ]
+            ( { model | categories = Loading }, fetchCategories )
 
-        CategoriesResponse res ->
-            case res of
-                Ok categories ->
-                    ( { model
-                        | categories = categories
-                        , error = Nothing
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model
-                        | error = Just "Error calling API"
-                      }
-                    , Cmd.none
-                    )
+        HandleCategoriesResponse data ->
+            ( { model | categories = data }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -114,13 +98,24 @@ renderApiError maybeError =
             text ""
 
 
-renderCategories : List Category -> Html Msg
-renderCategories categories =
-    categories
-        |> List.map category
-        |> tbody []
-        |> (\r -> categoriesHeader :: [ r ])
-        |> table [ class "table table-hover" ]
+renderCategories : WebData (List Category) -> Html Msg
+renderCategories data =
+    case data of
+        Loading ->
+            text "Fetching categories..."
+
+        Success categories ->
+            categories
+                |> List.map category
+                |> tbody []
+                |> (\r -> categoriesHeader :: [ r ])
+                |> table [ class "table table-hover" ]
+
+        Failure error ->
+            text "Failed to fetch data"
+
+        NotAsked ->
+            text ""
 
 
 category : Category -> Html Msg
