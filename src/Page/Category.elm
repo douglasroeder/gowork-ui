@@ -13,7 +13,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
 import Data.Category exposing (Category, CategoryId, decoder)
+import Data.ApiResult exposing (ApiResult)
 import Route exposing (Route(..))
+import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData.Http
 
 
 type alias Model =
@@ -38,35 +41,34 @@ init =
 
 mount : Model -> Maybe CategoryId -> ( Model, Cmd Msg )
 mount model maybeId =
-    case maybeId of
-        Just id ->
-            let
-                url =
-                    apiUrl ++ "/" ++ (toString id)
-
-                req =
-                    Http.get url decoder
-
-                cmd =
-                    Http.send FetchCategoryResponse req
-            in
-                ( initModel, cmd )
-
-        Nothing ->
-            init
+    ( initModel, fetchCategory maybeId )
 
 
 type Msg
     = NameInput String
     | Submit
     | Cancel
-    | SubmitResponse (Result Http.Error Category)
-    | FetchCategoryResponse (Result Http.Error Category)
+    | SubmitResponse (Result Http.Error (ApiResult Category))
+    | HandleCategoryResponse (WebData (ApiResult Category))
 
 
 apiUrl : String
 apiUrl =
     "http://localhost:8080/v1/categories"
+
+
+fetchCategory : Maybe CategoryId -> Cmd Msg
+fetchCategory maybeId =
+    case maybeId of
+        Just id ->
+            let
+                url =
+                    apiUrl ++ "/" ++ (toString id)
+            in
+                RemoteData.Http.get url HandleCategoryResponse Data.Category.decoder
+
+        Nothing ->
+            Cmd.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,18 +106,24 @@ update msg model =
                 Err err ->
                     ( { model | apiError = Just "Error calling api" }, Cmd.none )
 
-        FetchCategoryResponse res ->
-            case res of
-                Ok category ->
+        HandleCategoryResponse data ->
+            case data of
+                Loading ->
+                    model ! []
+
+                Success result ->
                     ( { model
-                        | name = category.name
+                        | name = result.payload.name
                         , apiError = Nothing
                       }
                     , Cmd.none
                     )
 
-                Err err ->
-                    ( { model | apiError = Just "Error adding category" }, Cmd.none )
+                Failure error ->
+                    { model | apiError = Just "Error calling API" } ! []
+
+                NotAsked ->
+                    model ! []
 
 
 submitForm : String -> Cmd Msg

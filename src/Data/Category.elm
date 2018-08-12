@@ -6,13 +6,12 @@ module Data.Category
         , encoder
         , decoder
         , listDecoder
-        , apiResultDecoder
         )
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required)
-import Data.ApiResult exposing (ApiResult)
+import Data.ApiResult exposing (ApiResult, apiDecoder)
 
 
 type alias CategoryId =
@@ -36,21 +35,18 @@ encoder category =
         ]
 
 
-apiResultDecoder : Decoder (ApiResult CategoryList)
-apiResultDecoder =
-    decode ApiResult
-        |> required "status_code" Decode.int
-        |> required "errors" (Decode.list Decode.string)
-        |> required "payload" listDecoder
+listDecoder : Decoder (ApiResult CategoryList)
+listDecoder =
+    apiDecoder (Decode.list categoryDecoder)
 
 
-decoder : Decoder Category
+decoder : Decoder (ApiResult Category)
 decoder =
+    apiDecoder categoryDecoder
+
+
+categoryDecoder : Decoder Category
+categoryDecoder =
     decode Category
         |> required "id" Decode.int
         |> required "name" Decode.string
-
-
-listDecoder : Decoder CategoryList
-listDecoder =
-    Decode.list decoder

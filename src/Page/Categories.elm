@@ -50,7 +50,7 @@ apiUrl =
 
 fetchCategories : Cmd Msg
 fetchCategories =
-    RemoteData.Http.get apiUrl HandleCategoriesResponse Data.Category.apiResultDecoder
+    RemoteData.Http.get apiUrl HandleCategoriesResponse Data.Category.listDecoder
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
