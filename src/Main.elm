@@ -256,7 +256,6 @@ sidebar model =
                 [ li [ class "nav-item mT-30 active" ]
                     [ homeLinkView
                     , categoriesLinkView model
-                    , categoryLinkView model
                     , authLinkView model
                     ]
                 ]
@@ -271,17 +270,6 @@ categoriesLinkView { loggedIn } =
             CategoriesRoute
             [ class "sidebar-link" ]
             [ span [ class "title" ] [ text "Categories" ] ]
-    else
-        text ""
-
-
-categoryLinkView : Model -> Html Msg
-categoryLinkView { loggedIn } =
-    if loggedIn then
-        Route.linkTo
-            CategoryAddRoute
-            [ class "sidebar-link" ]
-            [ span [ class "title" ] [ text "New Category" ] ]
     else
         text ""
 

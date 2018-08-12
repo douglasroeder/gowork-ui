@@ -13,6 +13,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
 import Data.Category exposing (Category, CategoryId, decoder)
+import Route exposing (Route(..))
 
 
 type alias Model =
@@ -58,6 +59,7 @@ mount model maybeId =
 type Msg
     = NameInput String
     | Submit
+    | Cancel
     | SubmitResponse (Result Http.Error Category)
     | FetchCategoryResponse (Result Http.Error Category)
 
@@ -91,10 +93,13 @@ update msg model =
                     , Cmd.none
                     )
 
+        Cancel ->
+            model ! [ Route.goto CategoriesRoute ]
+
         SubmitResponse res ->
             case res of
                 Ok category ->
-                    ( initModel, Cmd.none )
+                    ( initModel, Route.goto CategoriesRoute )
 
                 Err err ->
                     ( { model | apiError = Just "Error calling api" }, Cmd.none )
@@ -172,6 +177,7 @@ view model =
                         , nameErrorMessage
                         ]
                     , button [ class "btn btn-primary", onClick Submit ] [ text "Save" ]
+                    , button [ class "btn btn-default", onClick Cancel ] [ text "Cancel" ]
                     ]
                 ]
             ]
