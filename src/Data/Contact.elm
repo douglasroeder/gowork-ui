@@ -1,13 +1,29 @@
-module Data.Contact exposing (Contact, decoder)
+module Data.Contact
+    exposing
+        ( Contact
+        , ContactList
+        , ContactId
+        , decoder
+        , listDecoder
+        )
 
 import Date exposing (Date)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (decode, required)
 import Data.Helpers exposing (dateDecoder)
+import Data.ApiResult exposing (ApiResult, apiDecoder)
+
+
+type alias ContactList =
+    List Contact
+
+
+type alias ContactId =
+    Int
 
 
 type alias Contact =
-    { id : Int
+    { id : ContactId
     , name : String
     , email : String
     , landPhone : String
@@ -37,8 +53,18 @@ type ContactType
     | Company
 
 
-decoder : Decoder Contact
+decoder : Decoder (ApiResult Contact)
 decoder =
+    apiDecoder categoryDecoder
+
+
+listDecoder : Decoder (ApiResult ContactList)
+listDecoder =
+    apiDecoder (Decode.list categoryDecoder)
+
+
+categoryDecoder : Decoder Contact
+categoryDecoder =
     decode Contact
         |> required "id" Decode.int
         |> required "name" Decode.string
