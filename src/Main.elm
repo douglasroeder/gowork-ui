@@ -6,6 +6,7 @@ import Html.Events exposing (..)
 import Navigation
 import Page.Categories
 import Page.Category
+import Page.Contacts
 import Login
 import Route exposing (Route(..))
 
@@ -18,6 +19,7 @@ type alias Model =
     , location : Navigation.Location
     , categoriesModel : Page.Categories.Model
     , categoryModel : Page.Category.Model
+    , contactsModel : Page.Contacts.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -45,6 +47,7 @@ init flags location =
                 , location = location
                 , categoriesModel = Page.Categories.initModel
                 , categoryModel = Page.Category.initModel
+                , contactsModel = Page.Contacts.initModel
                 , login = loginInitModel
                 , token = flags.token
                 , loggedIn = loggedIn
@@ -100,6 +103,15 @@ mount model =
                 , Cmd.map CategoryMsg subCmd
                 )
 
+        ContactsRoute ->
+            let
+                ( subModel, subCmd ) =
+                    Page.Contacts.mount model.contactsModel
+            in
+                ( { model | contactsModel = subModel }
+                , Cmd.map ContactsMsg subCmd
+                )
+
         NotFoundRoute ->
             model ! []
 
@@ -108,6 +120,7 @@ type Msg
     = OnLocationChange Navigation.Location
     | CategoriesMsg Page.Categories.Msg
     | CategoryMsg Page.Category.Msg
+    | ContactsMsg Page.Contacts.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -145,6 +158,17 @@ update msg model =
                 , Cmd.batch
                     [ Cmd.map CategoryMsg cmd
                     ]
+                )
+
+        ContactsMsg msg ->
+            let
+                ( contactsModel, cmd ) =
+                    Page.Contacts.update msg model.contactsModel
+            in
+                ( { model
+                    | contactsModel = contactsModel
+                  }
+                , Cmd.map ContactsMsg cmd
                 )
 
         LoginMsg msg ->
@@ -221,6 +245,10 @@ pageContainer model =
                     Html.map CategoryMsg
                         (Page.Category.view model.categoryModel)
 
+                ContactsRoute ->
+                    Html.map ContactsMsg
+                        (Page.Contacts.view model.contactsModel)
+
                 LoginRoute ->
                     Html.map LoginMsg
                         (Login.view model.login)
@@ -256,6 +284,7 @@ sidebar model =
                 [ li [ class "nav-item mT-30 active" ]
                     [ homeLinkView
                     , categoriesLinkView model
+                    , contactsLinkView model
                     , authLinkView model
                     ]
                 ]
@@ -270,6 +299,17 @@ categoriesLinkView { loggedIn } =
             CategoriesRoute
             [ class "sidebar-link" ]
             [ span [ class "title" ] [ text "Categories" ] ]
+    else
+        text ""
+
+
+contactsLinkView : Model -> Html Msg
+contactsLinkView { loggedIn } =
+    if loggedIn then
+        Route.linkTo
+            ContactsRoute
+            [ class "sidebar-link" ]
+            [ span [ class "title" ] [ text "Contacts" ] ]
     else
         text ""
 
