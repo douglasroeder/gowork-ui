@@ -3,7 +3,6 @@ module Data.Category
         ( Category
         , CategoryId
         , CategoryList
-        , APIResult
         , encoder
         , decoder
         , listDecoder
@@ -13,6 +12,7 @@ module Data.Category
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Json.Decode.Pipeline exposing (decode, required)
+import Data.ApiResult exposing (ApiResult)
 
 
 type alias CategoryId =
@@ -29,13 +29,6 @@ type alias CategoryList =
     List Category
 
 
-type alias APIResult a =
-    { statusCode : Int
-    , errors : List String
-    , payload : a
-    }
-
-
 encoder : Category -> Encode.Value
 encoder category =
     Encode.object
@@ -43,9 +36,9 @@ encoder category =
         ]
 
 
-apiResultDecoder : Decoder (APIResult CategoryList)
+apiResultDecoder : Decoder (ApiResult CategoryList)
 apiResultDecoder =
-    decode APIResult
+    decode ApiResult
         |> required "status_code" Decode.int
         |> required "errors" (Decode.list Decode.string)
         |> required "payload" listDecoder

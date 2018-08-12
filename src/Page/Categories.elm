@@ -13,13 +13,14 @@ import Html exposing (..)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (..)
 import Route exposing (Route(..))
-import Data.Category exposing (Category, CategoryList, APIResult)
+import Data.Category exposing (Category, CategoryList)
+import Data.ApiResult exposing (ApiResult)
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
 
 
 type alias Model =
-    { categories : WebData (APIResult CategoryList)
+    { categories : WebData (ApiResult CategoryList)
     , error : Maybe String
     }
 
@@ -39,7 +40,7 @@ mount model =
 type Msg
     = ClickAddCategory
     | FetchCategories
-    | HandleCategoriesResponse (WebData (APIResult CategoryList))
+    | HandleCategoriesResponse (WebData (ApiResult CategoryList))
 
 
 apiUrl : String
@@ -97,7 +98,7 @@ renderApiError maybeError =
             text ""
 
 
-renderCategories : WebData (APIResult CategoryList) -> Html Msg
+renderCategories : WebData (ApiResult CategoryList) -> Html Msg
 renderCategories data =
     case data of
         Loading ->
