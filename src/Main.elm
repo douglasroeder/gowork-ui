@@ -7,6 +7,7 @@ import Navigation
 import Page.Categories
 import Page.Category
 import Page.Contacts
+import Page.Contact
 import Login
 import Route exposing (Route(..))
 
@@ -20,6 +21,7 @@ type alias Model =
     , categoriesModel : Page.Categories.Model
     , categoryModel : Page.Category.Model
     , contactsModel : Page.Contacts.Model
+    , contactModel : Page.Contact.Model
     , login : Login.Model
     , token : Maybe String
     , loggedIn : Bool
@@ -48,6 +50,7 @@ init flags location =
                 , categoriesModel = Page.Categories.initModel
                 , categoryModel = Page.Category.initModel
                 , contactsModel = Page.Contacts.initModel
+                , contactModel = Page.Contact.initModel
                 , login = loginInitModel
                 , token = flags.token
                 , loggedIn = loggedIn
@@ -112,6 +115,15 @@ mount model =
                 , Cmd.map ContactsMsg subCmd
                 )
 
+        ContactAddRoute ->
+            let
+                ( subModel, subCmd ) =
+                    Page.Contact.mount model.contactModel Nothing
+            in
+                ( { model | contactModel = subModel }
+                , Cmd.map ContactMsg subCmd
+                )
+
         NotFoundRoute ->
             model ! []
 
@@ -121,6 +133,7 @@ type Msg
     | CategoriesMsg Page.Categories.Msg
     | CategoryMsg Page.Category.Msg
     | ContactsMsg Page.Contacts.Msg
+    | ContactMsg Page.Contact.Msg
     | LoginMsg Login.Msg
     | Logout
 
@@ -169,6 +182,17 @@ update msg model =
                     | contactsModel = contactsModel
                   }
                 , Cmd.map ContactsMsg cmd
+                )
+
+        ContactMsg msg ->
+            let
+                ( contactModel, cmd ) =
+                    Page.Contact.update msg model.contactModel
+            in
+                ( { model
+                    | contactModel = contactModel
+                  }
+                , Cmd.map ContactMsg cmd
                 )
 
         LoginMsg msg ->
@@ -248,6 +272,10 @@ pageContainer model =
                 ContactsRoute ->
                     Html.map ContactsMsg
                         (Page.Contacts.view model.contactsModel)
+
+                ContactAddRoute ->
+                    Html.map ContactMsg
+                        (Page.Contact.view model.contactModel)
 
                 LoginRoute ->
                     Html.map LoginMsg

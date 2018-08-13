@@ -23,6 +23,7 @@ type Route
     | CategoryAddRoute
     | CategoryEditRoute CategoryId
     | ContactsRoute
+    | ContactAddRoute
     | NotFoundRoute
 
 
@@ -31,6 +32,7 @@ authRoutes =
     [ CategoriesRoute
     , CategoryAddRoute
     , ContactsRoute
+    , ContactAddRoute
     ]
 
 
@@ -69,6 +71,7 @@ matchers =
         , UrlParser.map CategoryAddRoute (s "categories" </> s "new")
         , UrlParser.map CategoryEditRoute (s "categories" </> int </> s "edit")
         , UrlParser.map CategoriesRoute (s "categories")
+        , UrlParser.map ContactAddRoute (s "contacts" </> s "new")
         , UrlParser.map ContactsRoute (s "contacts")
         ]
 
@@ -108,6 +111,9 @@ routeToHash route =
 
         ContactsRoute ->
             "#contacts"
+
+        ContactAddRoute ->
+            "#contacts/new"
 
         NotFoundRoute ->
             "#notfound"

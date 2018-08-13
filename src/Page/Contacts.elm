@@ -7,6 +7,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
 import Data.Contact exposing (Contact, ContactList)
 import Data.ApiResult exposing (ApiResult)
+import Route exposing (Route(..))
 
 
 type alias Model =
@@ -53,7 +54,7 @@ update msg model =
             { model | contacts = data } ! []
 
         ClickAddContact ->
-            model ! []
+            model ! [ Route.goto ContactAddRoute ]
 
 
 view : Model -> Html Msg
@@ -63,7 +64,7 @@ view model =
         , div [ class "bgc-white bd bdrs-3 p-20" ]
             [ div [ class "peers ai-c" ]
                 [ div [ class "peer peer-greed" ]
-                    [ h4 [ class "c-grey-900 mB-20" ] [ text "Categories" ] ]
+                    [ h4 [ class "c-grey-900 mB-20" ] [ text "Contacts" ] ]
                 , div [ class "peer" ]
                     [ button [ class "btn btn-primary", onClick ClickAddContact ] [ text "Add" ] ]
                 ]
