@@ -58,10 +58,15 @@ update msg model =
                     model ! []
 
                 Success result ->
-                    model ! []
+                    ( { model
+                        | name = result.payload.name
+                        , apiError = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 Failure err ->
-                    model ! []
+                    { model | apiError = Just "Error calling API" } ! []
 
                 NotAsked ->
                     model ! []
