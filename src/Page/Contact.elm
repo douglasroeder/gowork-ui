@@ -1,11 +1,13 @@
 module Page.Contact exposing (Model, Msg, initModel, mount, update, view)
 
 import Html exposing (..)
+import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
 import Data.Contact exposing (Contact, ContactId, decoder)
 import Data.ApiResult exposing (ApiResult)
+import Route exposing (Route(..))
 
 
 type alias Model =
@@ -27,7 +29,10 @@ mount model maybeId =
 
 
 type Msg
-    = HandleContactResponse (WebData (ApiResult Contact))
+    = NameInput String
+    | Submit
+    | Cancel
+    | HandleContactResponse (WebData (ApiResult Contact))
 
 
 apiUrl : String
@@ -52,6 +57,15 @@ fetchContact maybeId =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NameInput name ->
+            ( { model | name = name }, Cmd.none )
+
+        Submit ->
+            model ! []
+
+        Cancel ->
+            model ! [ Route.goto ContactsRoute ]
+
         HandleContactResponse data ->
             case data of
                 Loading ->
@@ -77,6 +91,13 @@ view model =
     div [ class "col-md-6" ]
         [ div [ class "bgc-white p-20 bd" ]
             [ h4 [ class "c-grey-900" ] [ text "Contact" ]
-            , div [ class "mT-30" ] []
+            , div [ class "mT-30" ]
+                [ div [ class "form-group" ]
+                    [ label [ for "name" ] [ text "Name" ]
+                    , input [ class "form-control", id "name", onInput NameInput, value model.name ] []
+                    ]
+                , button [ class "btn btn-primary", onClick Submit ] [ text "Save" ]
+                , button [ class "btn btn-default", onClick Cancel ] [ text "Cancel" ]
+                ]
             ]
         ]
