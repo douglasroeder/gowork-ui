@@ -1,12 +1,13 @@
 module Page.Contacts exposing (Model, Msg, initModel, mount, update, view)
 
+import Data.ApiResult exposing (ApiResult)
+import Data.Contact exposing (Contact, ContactList)
 import Html exposing (..)
-import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
-import Data.Contact exposing (Contact, ContactList)
-import Data.ApiResult exposing (ApiResult)
+import Rest exposing (apiEndpoint)
 import Route exposing (Route(..))
 
 
@@ -36,7 +37,7 @@ type Msg
 
 apiUrl : String
 apiUrl =
-    "http://localhost:8080/v1/contacts"
+    apiEndpoint ++ "/v1/contacts"
 
 
 fetchContacts : Cmd Msg

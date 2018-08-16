@@ -8,15 +8,16 @@ module Page.Category
         , view
         )
 
+import Data.ApiResult exposing (ApiResult)
+import Data.Category exposing (Category, CategoryId, decoder)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http exposing (..)
-import Data.Category exposing (Category, CategoryId, decoder)
-import Data.ApiResult exposing (ApiResult)
-import Route exposing (Route(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
+import Rest exposing (apiEndpoint)
+import Route exposing (Route(..))
 
 
 type alias Model =
@@ -54,7 +55,7 @@ type Msg
 
 apiUrl : String
 apiUrl =
-    "http://localhost:8080/v1/categories"
+    apiEndpoint ++ "/v1/categories"
 
 
 fetchCategory : Maybe CategoryId -> Cmd Msg

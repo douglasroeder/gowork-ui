@@ -1,12 +1,17 @@
 module Login exposing (..)
 
+import Data.ApiResult exposing (ApiResult, apiErrorDecoder)
+import Data.Authentication exposing (Authentication, decoder)
 import Html exposing (..)
-import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
+import Json.Decode as JD
 import Json.Encode as JE
-import Json.Decode as JD exposing (field)
 import Navigation
+import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData.Http
+import Rest exposing (apiEndpoint)
 
 
 -- model
@@ -41,12 +46,12 @@ type Msg
     | PasswordInput String
     | Submit
     | Error String
-    | LoginResponse (Result Http.Error String)
+    | HandleLoginResponse (WebData (ApiResult Authentication))
 
 
-url : String
-url =
-    "http://localhost:8080/authenticate"
+apiUrl : String
+apiUrl =
+    apiEndpoint ++ "/authenticate"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, Maybe String )
@@ -58,6 +63,46 @@ update msg model =
         PasswordInput password ->
             ( { model | password = password }, Cmd.none, Nothing )
 
+        HandleLoginResponse res ->
+            case res of
+                Loading ->
+                    ( model, Cmd.none, Nothing )
+
+                Success data ->
+                    ( initModel, Navigation.newUrl "#/", Just data.payload.token )
+
+                Failure error ->
+                    let
+                        errMsg =
+                            case error of
+                                Http.BadStatus resp ->
+                                    case resp.status.code of
+                                        401 ->
+                                            resp.body
+
+                                        404 ->
+                                            let
+                                                body =
+                                                    JD.decodeString apiErrorDecoder resp.body
+                                            in
+                                                case body of
+                                                    Ok result ->
+                                                        result.error
+
+                                                    Err error ->
+                                                        error
+
+                                        _ ->
+                                            resp.status.message
+
+                                _ ->
+                                    "Login Error!"
+                    in
+                        ( { model | error = Just errMsg }, Cmd.none, Nothing )
+
+                NotAsked ->
+                    ( model, Cmd.none, Nothing )
+
         Submit ->
             let
                 body =
@@ -65,39 +110,11 @@ update msg model =
                         [ ( "username", JE.string model.username )
                         , ( "password", JE.string model.password )
                         ]
-                        |> JE.encode 4
-                        |> Http.stringBody "application/json"
-
-                decoder =
-                    field "token" JD.string
-
-                request =
-                    Http.post url body decoder
 
                 cmd =
-                    Http.send LoginResponse request
+                    RemoteData.Http.post apiUrl HandleLoginResponse decoder body
             in
                 ( model, cmd, Nothing )
-
-        LoginResponse (Ok token) ->
-            ( initModel, Navigation.newUrl "#/", Just token )
-
-        LoginResponse (Err err) ->
-            let
-                errMsg =
-                    case err of
-                        Http.BadStatus resp ->
-                            case resp.status.code of
-                                401 ->
-                                    resp.body
-
-                                _ ->
-                                    resp.status.message
-
-                        _ ->
-                            "Login Error!"
-            in
-                ( { model | error = Just errMsg }, Cmd.none, Nothing )
 
         Error error ->
             ( { model | error = Just error }, Cmd.none, Nothing )

@@ -9,14 +9,15 @@ module Page.Categories
         , view
         )
 
-import Html exposing (..)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (..)
-import Route exposing (Route(..))
-import Data.Category exposing (Category, CategoryList)
 import Data.ApiResult exposing (ApiResult)
+import Data.Category exposing (Category, CategoryList)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http
+import Rest exposing (apiEndpoint)
+import Route exposing (Route(..))
 
 
 type alias Model =
@@ -45,7 +46,7 @@ type Msg
 
 apiUrl : String
 apiUrl =
-    "http://localhost:8080/v1/categories"
+    apiEndpoint ++ "/v1/categories"
 
 
 fetchCategories : Cmd Msg
